@@ -23,24 +23,20 @@ router.post(
         .from("users")
         .where({ email: req.body.email })
         .then((rows) => {
-          console.log(rows);
           if (rows.length > 0) {
             return res.send({ error: true, message: "User already exists!" });
           }
 
           bcrypt.hash(req.body.password, 10, (err, hashvalue) => {
-            console.log(hashvalue);
             knex
               .insert({ email: req.body.email, password: hashvalue })
               .into("users")
               .then((result) => {
-                console.log(result, "rrrrrrr");
                 return res
                   .status(201)
                   .send({ success: true, message: "User created" });
               })
               .catch((e) => {
-                console.log(e);
                 return res
                   .status(500)
                   .send({ error: true, message: "Server Error" });
@@ -48,7 +44,6 @@ router.post(
           });
         })
         .catch((e) => {
-          console.log(e);
           return res.status(500).send({ error: true, message: "Server Error" });
         });
     } catch (exp) {
@@ -57,50 +52,55 @@ router.post(
   }
 );
 
-router.post("/login", function (req, res, next) {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      error: true,
-      message: "Request body incomplete - email and password needed",
-    });
-  }
-  knex
-    .select("email", "password")
-    .from("users")
-    .where({ email: req.body.email })
-    .first()
-    .then((row) => {
-      console.log(row);
-      if (!row) {
-        return res
-          .send(401)
-          .send({ error: true, message: "User Not Registered" });
-      }
-      if (bcrypt.compareSync(req.body.password, row["password"])) {
-        jwt.sign(
-          { email: req.body.email },
-          process.env.SECRET,
-          { expiresIn: "86400" },
-          (error, token) => {
-            return res.status(200).send({
-              token: token,
-              token_type: "Bearer",
-              expires: 86400,
-            });
-          }
-        );
-      } else {
-        return res
-          .status(401)
-          .send({ error: true, message: "Incorrect password" });
-      }
-    })
-    .catch((err) => {
-      console.log(err);
+router.post(
+  "/login",
+  [check("email").isEmail(), check("password").isLength()],
+  function (req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: true,
+        message: "Request body incomplete - email and password needed",
+      });
+    }
 
-      res.send("error");
-    });
-});
+    knex
+      .select("email", "password")
+      .from("users")
+      .where({ email: req.body.email })
+      .first()
+      .then((row) => {
+        if (!row) {
+          return res
+            .send(401)
+            .send({ error: true, message: "User Not Registered" });
+        }
+        if (bcrypt.compareSync(req.body.password, row["password"])) {
+          jwt.sign(
+            {
+              exp: Math.floor(Date.now() / 1000) + 86400,
+              data: req.body.email,
+            },
+            process.env.SECRET,
+            { algorithm: "HS256" },
+            (error, token) => {
+              return res.status(200).send({
+                token: token,
+                token_type: "Bearer",
+                expires: 86400,
+              });
+            }
+          );
+        } else {
+          return res
+            .status(401)
+            .send({ error: true, message: "Incorrect password" });
+        }
+      })
+      .catch((err) => {
+        res.status(404).send({ error: true, message: "Server Error" });
+      });
+  }
+);
 
 module.exports = router;

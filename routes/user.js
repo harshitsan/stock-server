@@ -3,19 +3,12 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { check, validationResult } = require("express-validator");
 var router = express.Router();
-const knex = require("knex")({
-  client: "mysql",
-  connection: {
-    host: "localhost",
-    user: "newuser",
-    password: "abc123abc",
-    database: "webcomputing",
-  },
-});
+require("dotenv").config();
+const knex = require(".././services/db");
 
 router.post(
   "/register",
-  [check("email").isEmail(), check("password").isLength({ min: 8 })],
+  [check("email").isEmail(), check("password").isLength()],
   function (req, res, next) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -65,32 +58,47 @@ router.post(
 );
 
 router.post("/login", function (req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      error: true,
+      message: "Request body incomplete - email and password needed",
+    });
+  }
   knex
     .select("email", "password")
     .from("users")
     .where({ email: req.body.email })
     .first()
     .then((row) => {
+      console.log(row);
       if (!row) {
-        res.send(401).send({ error: true, message: "Incorrect password" });
+        return res
+          .send(401)
+          .send({ error: true, message: "User Not Registered" });
       }
-      if (bcrpyt.compareSync(req.body.password, row["password"])) {
+      if (bcrypt.compareSync(req.body.password, row["password"])) {
         jwt.sign(
-          { email: req.body.password },
-          privatKey,
-          { expiresIn: "24h" },
-          (token) =>
-            res.status(200).send({
+          { email: req.body.email },
+          process.env.SECRET,
+          { expiresIn: "86400" },
+          (error, token) => {
+            return res.status(200).send({
               token: token,
               token_type: "Bearer",
               expires: 86400,
-            })
+            });
+          }
         );
       } else {
-        res.send(401).send({ error: true, message: "Incorrect password" });
+        return res
+          .status(401)
+          .send({ error: true, message: "Incorrect password" });
       }
     })
     .catch((err) => {
+      console.log(err);
+
       res.send("error");
     });
 });

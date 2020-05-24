@@ -1,15 +1,7 @@
 var express = require("express");
 var router = express.Router({ caseSensitive: true });
-const krex = require("knex")({
-  client: "mysql",
-  connection: {
-    host: "localhost",
-    user: "newuser",
-    password: "abc123abc",
-    database: "webcomputing",
-  },
-});
-
+const knex = require(".././services/db");
+require("dotenv").config();
 router.get("/symbols", function (req, res, next) {
   try {
     const { industry } = req.query;
@@ -21,7 +13,7 @@ router.get("/symbols", function (req, res, next) {
     } else {
       if (industry) {
         console.log(industry);
-        krex
+        knex
           .select("*")
           .from("stocks")
           .where("industry", industry)
@@ -40,7 +32,7 @@ router.get("/symbols", function (req, res, next) {
               .send({ error: true, message: "Server Error" });
           });
       } else
-        krex
+        knex
           .select("name", "symbol", "industry")
           .from("stocks")
           .distinct()
@@ -68,7 +60,7 @@ router.get("/:symbol([A-Z]+)", function (req, res, next) {
           "Date parameters only available on authenticated route /stocks/authed",
       });
     }
-    krex
+    knex
       .select("*")
       .from("stocks")
       .where({ symbol: req.params.symbol })
@@ -90,23 +82,23 @@ router.get("/:symbol([A-Z]+)", function (req, res, next) {
 });
 
 router.get("/authed/:symbol([A-Z]+)", function (req, res, next) {
-  jwt.verify(req.header["user-token"], SECRET_KEY, (err, decoded) => {
+  jwt.verify(req.header["user-token"], process.env.SECRET, (err, decoded) => {
     if (err) {
       res
         .status(403)
         .send({ error: true, message: "Authorization header not found" });
     }
     if (!err) {
-      krex
+      knex
         .select("*")
         .from("stocks")
         .where({ symbol: req.params.symbol })
         .orderBy("timestamp")
         .then((rows) => {
-          if (rows.lenght > 0) {
+          if (rows.length > 0) {
             res.send(JSON.parse(JSON.stringify(rows)));
           }
-          res.status(404).send();
+          res.status(200).send([]);
         })
         .catch((err) => res.send(err));
     }

@@ -1,13 +1,13 @@
 var createError = require("http-errors");
-var express = require("express");
+var express = require("express"); // to create server
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 
-var stocksRouter = require("./routes/stocks");
-var userRouter = require("./routes/user");
+var stocksRouter = require("./routes/stocks"); // 'stocks' route handlers
+var userRouter = require("./routes/user"); // 'user' route handlers
 
-var app = express();
+var app = express(); // create express app
 
 // view engine setup
 
@@ -15,10 +15,10 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public"))); // to serve static files
 
-app.use("/stocks", stocksRouter);
-app.use("/user", userRouter);
+app.use("/stocks", stocksRouter); // '/stocks' requets to be handled by stocksRouter
+app.use("/user", userRouter); // '/user' requests to be handled by userRouter
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

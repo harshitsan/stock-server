@@ -4,15 +4,16 @@ var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var helmet = require("helmet");
+var cors = require("cors");
 
-var stocksRouter = require("./routes/stocks"); // 'stocks' route handlers
-var userRouter = require("./routes/user"); // 'user' route handlers
-var indexRouter = require("./routes/index"); // 'index' route handlers
+var stocksRouter = require("./controllers/stocks"); // 'stocks' route handlers
+var userRouter = require("./controllers/user"); // 'user' route handlers
+var indexRouter = require("./controllers/index"); // 'index' route handlers
 
 var app = express(); // create express app
 
-// view engine setup
-app.use(helmet());
+app.use(cors());
+app.use(helmet()); //Helmet will set various HTTP headers to help protect your app
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

@@ -3,6 +3,7 @@ var express = require("express"); // to create server
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+var helmet = require("helmet");
 
 var stocksRouter = require("./routes/stocks"); // 'stocks' route handlers
 var userRouter = require("./routes/user"); // 'user' route handlers
@@ -11,7 +12,7 @@ var indexRouter = require("./routes/index"); // 'index' route handlers
 var app = express(); // create express app
 
 // view engine setup
-
+app.use(helmet());
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

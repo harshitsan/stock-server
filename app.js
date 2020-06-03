@@ -6,6 +6,7 @@ var logger = require("morgan");
 
 var stocksRouter = require("./routes/stocks"); // 'stocks' route handlers
 var userRouter = require("./routes/user"); // 'user' route handlers
+var indexRouter = require("./routes/index"); // 'index' route handlers
 
 var app = express(); // create express app
 
@@ -19,6 +20,7 @@ app.use(express.static(path.join(__dirname, "public"))); // to serve static file
 
 app.use("/stocks", stocksRouter); // '/stocks' requets to be handled by stocksRouter
 app.use("/user", userRouter); // '/user' requests to be handled by userRouter
+app.use("/", indexRouter); // '/index' requests to be handled by indexRouter
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

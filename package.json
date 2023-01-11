@@ -16,7 +16,7 @@
     "helmet": "^3.22.0",
     "http-errors": "~1.6.3",
     "jsonwebtoken": "^8.5.1",
-    "knex": "^0.21.1",
+    "knex": "^2.4.0",
     "morgan": "~1.9.1",
     "mysql2": "^2.1.0",
     "swagger-ui-dist": "^3.25.4",
